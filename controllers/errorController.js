@@ -1,6 +1,5 @@
 const AppError = require('../utils/appError');
 
-/*************  ✨ Windsurf Command ⭐  *************/
 /**
  * Creates a new AppError instance with a message about a CastError
  * coming from MongoDB, and a 400 status code.

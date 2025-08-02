@@ -1,10 +1,10 @@
-const express = require('express');
+const express = require('express'); // node.js frame work.
 const morgan = require('morgan');
-const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
-const hpp = require('hpp');
+// const hpp = require('hpp');
 
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
@@ -13,16 +13,17 @@ const userRouter = require('./routes/userRoutes');
 const postRouter = require('./routes/postRoutes');
 const commentRouter = require('./routes/commentRoutes');
 
+// Creating the express app
 const app = express();
 
-// 1) GLOBAL MIDDLEWARE
+// GLOBAL MIDDLEWARE
 
 // Set security HTTP headers
 // Put this before all the global middlewares
 // this is a middleware to set security headers
 app.use(helmet());
 
-// Development logging
+// it shows the which path coming and show details about it with different parameters.
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
@@ -30,8 +31,8 @@ if (process.env.NODE_ENV === 'development') {
 // Limit requests from the same API
 // this is a middleware to limit the number of requests
 const limiter = rateLimit({
-  max: 100, // 100 requests per hour
-  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 100, // 100 request per windowMs
+  windowsMs: 60 * 60 * 1000, // 1 hour
   message: 'Too many requests from this IP, please try again in an hour!',
 });
 app.use('/api', limiter);

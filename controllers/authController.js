@@ -1,18 +1,22 @@
-const crypto = require('crypto');
-const { promisify } = require('util');
-const jwt = require('jsonwebtoken');
-const User = require('../models/userModel');
-const catchAsync = require('../utils/catchAsync');
-const AppError = require('../utils/appError');
-const sendEmail = require('../utils/email');
+const crypto = require('crypto'); // It is used to produce token in operations such as password reset.
+const { promisify } = require('util'); // To convert a Callback -based function to Promise. Here to use the JWT.Verify function with Await.
+const jwt = require('jsonwebtoken'); // For JWT Token Creating and Verification.
+const User = require('../models/userModel'); // MongoDB User Model
+const catchAsync = require('../utils/catchAsync'); // Wrapper that can capture errors in async functions.
+const AppError = require('../utils/appError'); // Special error class creates error with messages and status code.
+const sendEmail = require('../utils/email'); // To send the password reset email.
 
+// This produces a token of the user.
+// There is only id in token. The secret key is taken from .env.
 const signToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 
 const createSendToken = (user, statusCode, res) => {
+  // 1) Create JWT token
   const token = signToken(user._id);
+  // 2) Create cookie options to send browser
   const cookieOptions = {
     expires: new Date(
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
@@ -27,12 +31,15 @@ const createSendToken = (user, statusCode, res) => {
 
   if (process.env.COOKIE_SECURE === 'true') cookieOptions.secure = true;
 
+  // 3) HTTP-only sends Token to the browser as a cookie
   res.cookie('jwt', token, cookieOptions);
 
+  // 4) Undefineded the user's password (so that it is not included in the output).
   // Remove password from output.
   // Because we see password in postman when we create a new user
   user.password = undefined;
 
+  // 5) Sends the token and user
   res.status(statusCode).json({
     status: 'success',
     token,
@@ -53,6 +60,7 @@ const signup = catchAsync(async (req, res, next) => {
     // role: req.body.role,
   });
 
+  // Creates a token for the user and send it with the newUser to the browser
   createSendToken(newUser, 201, res);
 });
 
@@ -67,6 +75,7 @@ const login = catchAsync(async (req, res, next) => {
 
   // 2) check if user exists && password is correct
   // if the field is not selected, we need to add '+' select('+password')
+  // '+password' includes not selected password to the user to check it later
   const user = await User.findOne({ email }).select('+password');
 
   // 401 is unauthorized
@@ -95,7 +104,7 @@ const protect = catchAsync(async (req, res, next) => {
   // we can access the header using req.headers
   // in the headers we create authorization for the token
   // and the token value should be started with Bearer and  separated by space
-  //   authorization: 'Bearer asda;slfkas;dlk'
+  // authorization: 'Bearer asda;slfkas;dlk'
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
@@ -138,6 +147,7 @@ const protect = catchAsync(async (req, res, next) => {
   }
 
   // 4) Check if user changed password after the token was issued
+  // iat = issued at
   if (currentUser.changedPasswordAfter(decoded.iat)) {
     return next(
       new AppError('User recently changed password! Please log in again.', 401),

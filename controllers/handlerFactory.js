@@ -17,6 +17,7 @@ const deleteOne = (Model) =>
       }
     }
 
+    // deletes the document according to id
     const doc = await Model.findByIdAndDelete(req.params.id);
 
     if (!doc) {
@@ -31,6 +32,9 @@ const deleteOne = (Model) =>
 
 const updateOne = (Model) =>
   catchAsync(async (req, res, next) => {
+    // updates document according to id
+    // new: true, returns a new updated doc
+    // runValidators: true, runs schema validators
     const doc = await Model.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
@@ -60,9 +64,13 @@ const createOne = (Model) =>
     });
   });
 
+// example: getOne(Comment, { path: 'user', select: 'username profilePic' })
+// In this way, the user's name and profile picture returns under each comment.
 const getOne = (Model, popOptions) =>
   catchAsync(async (req, res, next) => {
+    // gets a doc with the id
     let query = Model.findById(req.params.id);
+    // populate, It fills the referenced data in Mongodb with real data during the query.
     if (popOptions) query = query.populate(popOptions);
     const doc = await query;
 
@@ -80,9 +88,9 @@ const getOne = (Model, popOptions) =>
 
 const getAll = (Model) =>
   catchAsync(async (req, res, next) => {
-    // To allow for nested GET reviews on tour (hack)
+    // To allow for nested GET comments on the post (hack)
     let filter = {};
-    if (req.params.tourId) filter = { tour: req.params.tourId };
+    if (req.params.postId) filter = { post: req.params.postId };
 
     const features = new APIFeatures(Model.find(filter), req.query)
       .filter()

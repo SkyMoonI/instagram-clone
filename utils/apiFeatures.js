@@ -1,17 +1,21 @@
+// this class takes query strings from URL, and turn it into MongoDB query.
 class APIFeatures {
   // query is a mongoose query, queryString is an express query string
   constructor(query, queryString) {
-    this.query = query;
-    this.queryString = queryString;
+    this.query = query; // Mongoose query (example: User.find())
+    this.queryString = queryString; // query string in the URL (example: ?sort=price&limit=10)
   }
 
   filter() {
     const queryObj = { ...this.queryString };
     const excludeFields = ['page', 'sort', 'limit', 'fields'];
+    // we take these fields from query. Because they are not related to filtering
+    // and we handle the fields later with their own methods
     excludeFields.forEach((el) => delete queryObj[el]);
 
     let queryStr = JSON.stringify(queryObj);
     // we want to replace gte, gt, lte, lt with $gte, $gt, $lte, $lt. Because mongoose doesn't support these
+    // example: price[gte]=1000 → { price: { $gte: 1000 } }
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
 
     // we need to give the query as an object not a string
@@ -23,6 +27,7 @@ class APIFeatures {
   sort() {
     if (this.queryString.sort) {
       // sort('price ratingAverage') this is from the query string
+      // if ?sort=price,rating exists → sort('price rating')
       const sortBy = this.queryString.sort.split(',').join(' '); // this is for the same sorting values.
       this.query = this.query.sort(sortBy);
       // console.log(sortBy);
@@ -36,6 +41,7 @@ class APIFeatures {
   }
 
   limitFields() {
+    // for protection
     const sensitiveFields = ['password', 'ssn', 'secret'];
     // if (this.queryString.fields) {
     //   const fields = this.queryString.fields.split(',').join(' ');
