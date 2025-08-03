@@ -16,8 +16,8 @@ const {
   followUser,
   unfollowUser,
   getFollowers,
-  getFollowing,
-  getUserByUserName,
+  getFollowings,
+  getUserByUsername,
   searchUsers,
 } = userController;
 
@@ -38,7 +38,7 @@ router.post('/signup', signup);
 router.post('/login', login);
 
 router.post('/forgotPassword', forgotPassword);
-router.patch('/resetPassword/:token', resetPassword); // will be updated
+router.patch('/resetPassword/:token', resetPassword);
 
 // Protect all routes after this middleware
 // so we don't have to put it in every route
@@ -57,10 +57,10 @@ router.patch('/updateMyPassword', updatePassword); // Updates current logged-in 
 router.patch('/:id/follow', followUser); // Current user follows the user with given id
 router.patch('/:id/unfollow', unfollowUser); // Current user unfollows the user with given id
 router.get('/:id/followers', getFollowers); // Get the all followers with the given id
-router.get('/:id/following', getFollowing); // Get the all followings with the given id
+router.get('/:id/following', getFollowings); // Get the all followings with the given id
 
 // Search and public profile
-router.get('/u/:username', getUserByUserName); // '/u'(user) is to prevent overlapping with '/:id' route
+router.get('/u/:username', getUserByUsername); // '/u'(user) is to prevent overlapping with '/:id' route
 router.get('/search', searchUsers);
 
 // restrictTo all routes after this middleware

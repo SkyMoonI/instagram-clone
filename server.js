@@ -22,9 +22,10 @@ const DB = process.env.DATABASE.replace(
 );
 
 // connect to database
-mongoose.connect(DB).then(() => {
-  console.log('DB connection successful!');
-});
+mongoose
+  .connect(DB)
+  .then(() => console.log('DB connection successful!'))
+  .catch((err) => console.error('DB connection error:', err));
 
 // express environment
 console.log(process.env.NODE_ENV);

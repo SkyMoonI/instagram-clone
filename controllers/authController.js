@@ -52,7 +52,9 @@ const createSendToken = (user, statusCode, res) => {
 const signup = catchAsync(async (req, res, next) => {
   // we created the user with mongoose model. create func comes from mongoose
   const newUser = await User.create({
+    username: req.body.username,
     name: req.body.name,
+    surname: req.body.surname,
     email: req.body.email,
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,

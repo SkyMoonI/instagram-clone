@@ -1,12 +1,24 @@
-const crypto = require('crypto');
+const crypto = require('crypto'); // Used for token creation and encryption operations
 const mongoose = require('mongoose');
-const validator = require('validator');
-const bcrypt = require('bcryptjs');
+const validator = require('validator'); // To check the validation of areas such as e-mail.
+const bcrypt = require('bcryptjs'); // Used to safely hash passwords.
 
 const userSchema = new mongoose.Schema({
+  userName: {
+    type: String,
+    required: [true, 'Please tell us a username!'],
+    trim: true,
+    maxLength: [100, 'A user name must have less or equal then 40 characters'],
+  },
   name: {
     type: String,
     required: [true, 'Please tell us your name!'],
+    trim: true,
+    maxLength: [100, 'A user name must have less or equal then 40 characters'],
+  },
+  surname: {
+    type: String,
+    required: [true, 'Please tell us your surname!'],
     trim: true,
     maxLength: [100, 'A user name must have less or equal then 40 characters'],
   },
@@ -33,7 +45,7 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Please provide a password'],
     minLength: 8,
     maxLength: 64,
-    select: false,
+    select: false, // When the password field is brought from the database, it does not come by default
   },
   passwordConfirm: {
     type: String,
@@ -47,19 +59,20 @@ const userSchema = new mongoose.Schema({
       message: 'Passwords are not the same!',
     },
   },
-  passwordChangedAt: Date, // this will store the time when the password was changed
+  passwordChangedAt: Date, // this will store the time when the password was changed. If the password has changed after Token, invalidate the Token.
   passwordResetToken: String,
-  passwordResetExpires: Date,
+  passwordResetExpires: Date, // time the reset token expires
+  // user soft-delete (Passive instead of deleting an account)
   active: {
     type: Boolean,
     default: true,
     select: false,
   },
   followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  followings: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 });
 
-// Encrypt password
+// Encrypt password only if the password has changed
 // this will run before .save() and .create()
 userSchema.pre('save', async function (next) {
   // Only run this function if password was actually modified
@@ -82,7 +95,7 @@ userSchema.pre('save', function (next) {
   // this.isNew is a mongoose function
   if (!this.isModified('password') || this.isNew) return next();
 
-  // we are extracting 1second from the current time.
+  // we are extracting 1 second from the current time.
   // Because sometimes the token is issued before the password is changed
   // The purpose of subtracting 1000 milliseconds (1 second) from the current time when setting '⁠passwordChangedAt' is to ensure
   // that the timestamp is correctly set before the JWT (JSON Web Token) is issued.

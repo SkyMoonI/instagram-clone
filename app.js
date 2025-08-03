@@ -10,8 +10,8 @@ const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 
 const userRouter = require('./routes/userRoutes');
-const postRouter = require('./routes/postRoutes');
-const commentRouter = require('./routes/commentRoutes');
+// const postRouter = require('./routes/postRoutes');
+// const commentRouter = require('./routes/commentRoutes');
 
 // Creating the express app
 const app = express();
@@ -72,8 +72,8 @@ app.use(xss());
 // );
 
 app.use('/api/v1/users', userRouter);
-app.use('/api/v1/posts', postRouter);
-app.use('/api/v1/comments', commentRouter);
+// app.use('/api/v1/posts', postRouter);
+// app.use('/api/v1/comments', commentRouter);
 
 // this is a wildcard route. it will match any route
 // this should be the last route
