@@ -48,19 +48,20 @@ router.use(protect);
 
 // getMe puts the current users id into req.user.id
 // then gets the user with getUser
-router.get('/me', getMe, getUser); // Get current logged-in user data
-router.patch('/updateMe', updateMe); // Updates current logged-in user data
-router.delete('/deleteMe', deleteMe); // Deletes(inactive) current logged-in user
+// router.get('/me', getMe, getUser); // Get current logged-in user data
+// router.patch('/updateMe', updateMe); // Updates current logged-in user data
+// router.delete('/deleteMe', deleteMe); // Deletes(inactive) current logged-in user
+router.route('/me').get(getMe, getUser).patch(updateMe).delete(deleteMe);
 router.patch('/updateMyPassword', updatePassword); // Updates current logged-in user password
 
 // Social features
 router.patch('/:id/follow', followUser); // Current user follows the user with given id
 router.patch('/:id/unfollow', unfollowUser); // Current user unfollows the user with given id
 router.get('/:id/followers', getFollowers); // Get the all followers with the given id
-router.get('/:id/following', getFollowings); // Get the all followings with the given id
+router.get('/:id/followings', getFollowings); // Get the all followings with the given id
 
 // Search and public profile
-router.get('/u/:username', getUserByUsername); // '/u'(user) is to prevent overlapping with '/:id' route
+router.get('/user/:username', getUserByUsername); // '/u'(user) is to prevent overlapping with '/:id' route
 router.get('/search', searchUsers);
 
 // restrictTo all routes after this middleware

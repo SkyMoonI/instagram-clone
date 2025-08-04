@@ -4,7 +4,7 @@ const validator = require('validator'); // To check the validation of areas such
 const bcrypt = require('bcryptjs'); // Used to safely hash passwords.
 
 const userSchema = new mongoose.Schema({
-  userName: {
+  username: {
     type: String,
     required: [true, 'Please tell us a username!'],
     trim: true,

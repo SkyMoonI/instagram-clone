@@ -2,27 +2,12 @@ const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const factory = require('./handlerFactory');
-
-/**
- * This function takes an object and a list of allowed fields as input, and returns a new object that only contains the allowed fields.
- * @param {Object} obj - The object to filter.
- * @param  {...String} allowedFields - The list of allowed field names.
- * @returns {Object} - The filtered object.
- */
-const filterObj = (obj, ...allowedFields) => {
-  const newObj = {};
-  Object.keys(obj).forEach((el) => {
-    if (allowedFields.includes(el)) newObj[el] = obj[el];
-  });
-  return newObj;
-};
+const filterObj = require('../utils/filterObj');
 
 const getMe = (req, res, next) => {
   req.params.id = req.user.id;
   next();
 };
-
-const getAllUsers = factory.getAll(User);
 
 const updateMe = catchAsync(async (req, res, next) => {
   // 1) Create error if user POSTs password data
@@ -68,15 +53,6 @@ const deleteMe = catchAsync(async (req, res, next) => {
     data: null,
   });
 });
-
-const getUser = factory.getOne(User);
-
-const createUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not defined! Please use /signup instead',
-  });
-};
 
 const followUser = catchAsync(async (req, res, next) => {
   // 1) find the user that you want to follow
@@ -223,6 +199,10 @@ const searchUsers = catchAsync(async (req, res, next) => {
     active: true,
   }).select('username name surname photo'); // only return username, name, surname and photo fields
 
+  if (!users) {
+    return next(new AppError('No users found with that ID.', 404));
+  }
+
   // 4) Send response
   res.status(200).json({
     status: 'success',
@@ -233,23 +213,26 @@ const searchUsers = catchAsync(async (req, res, next) => {
   });
 });
 
-// do NOT update password with this
-// this is for admin
-const updateUser = factory.updateOne(User);
-const deleteUser = factory.deleteOne(User);
-
-exports.getAllUsers = getAllUsers;
+exports.getMe = getMe;
 exports.updateMe = updateMe;
 exports.deleteMe = deleteMe;
-exports.getUser = getUser;
-exports.createUser = createUser;
-exports.updateUser = updateUser;
-exports.deleteUser = deleteUser;
-exports.getMe = getMe;
-
 exports.followUser = followUser;
 exports.unfollowUser = unfollowUser;
 exports.getFollowers = getFollowers;
 exports.getFollowings = getFollowings;
 exports.getUserByUsername = getUserByUsername;
 exports.searchUsers = searchUsers;
+
+// do NOT update password with this
+// this is for admin
+const getAllUsers = factory.getAll(User);
+const getUser = factory.getOne(User);
+const createUser = factory.createOne(User);
+const updateUser = factory.updateOne(User);
+const deleteUser = factory.deleteOne(User);
+
+exports.getAllUsers = getAllUsers;
+exports.getUser = getUser;
+exports.createUser = createUser;
+exports.updateUser = updateUser;
+exports.deleteUser = deleteUser;
