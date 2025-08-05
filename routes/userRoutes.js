@@ -19,6 +19,10 @@ const {
   getFollowings,
   getUserByUsername,
   searchUsers,
+
+  // upload user photo
+  uploadUserPhoto,
+  resizeUserPhoto,
 } = userController;
 
 const {
@@ -51,7 +55,11 @@ router.use(protect);
 // router.get('/me', getMe, getUser); // Get current logged-in user data
 // router.patch('/updateMe', updateMe); // Updates current logged-in user data
 // router.delete('/deleteMe', deleteMe); // Deletes(inactive) current logged-in user
-router.route('/me').get(getMe, getUser).patch(updateMe).delete(deleteMe);
+router
+  .route('/me')
+  .get(getMe, getUser)
+  .patch(uploadUserPhoto, resizeUserPhoto, updateMe)
+  .delete(deleteMe);
 router.patch('/updateMyPassword', updatePassword); // Updates current logged-in user password
 
 // Social features

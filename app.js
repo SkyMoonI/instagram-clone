@@ -10,7 +10,7 @@ const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 
 const userRouter = require('./routes/userRoutes');
-// const postRouter = require('./routes/postRoutes');
+const postRouter = require('./routes/postRoutes');
 // const commentRouter = require('./routes/commentRoutes');
 
 // Creating the express app
@@ -71,8 +71,11 @@ app.use(xss());
 //   }),
 // );
 
+// Serving static files
+app.use(express.static(`${__dirname}/public`));
+
 app.use('/api/v1/users', userRouter);
-// app.use('/api/v1/posts', postRouter);
+app.use('/api/v1/posts', postRouter);
 // app.use('/api/v1/comments', commentRouter);
 
 // this is a wildcard route. it will match any route

@@ -46,7 +46,7 @@ const updateComment = catchAsync(async (req, res, next) => {
 
   // Whitelist only allowed fields
   const filteredBody = filterObj(req.body, 'content');
-
+  console.log(filteredBody);
   // Update the comment
   const updatedComment = await Comment.findByIdAndUpdate(
     req.params.id,
@@ -56,6 +56,7 @@ const updateComment = catchAsync(async (req, res, next) => {
       runValidators: true,
     },
   );
+  console.log(updatedComment);
 
   res.status(200).json({
     status: 'success',

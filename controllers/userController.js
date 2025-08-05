@@ -4,6 +4,11 @@ const AppError = require('../utils/appError');
 const factory = require('./handlerFactory');
 const filterObj = require('../utils/filterObj');
 
+const sharp = require('sharp');
+const upload = require('../utils/uploadImage');
+const fs = require('fs');
+const path = require('path');
+
 const getMe = (req, res, next) => {
   req.params.id = req.user.id;
   next();
@@ -19,8 +24,10 @@ const updateMe = catchAsync(async (req, res, next) => {
       ),
     );
   }
-  // 2) Filtered out unwanted fields names that are not allowed to be updated
 
+  if (req.file) req.body.photo = req.file.filename;
+
+  // 2) Filtered out unwanted fields names that are not allowed to be updated
   //  we filter for the unwanted fields that are not allowed to be updated
   const filteredBody = filterObj(req.body, 'name', 'surname', 'photo', 'bio');
 
@@ -213,6 +220,36 @@ const searchUsers = catchAsync(async (req, res, next) => {
   });
 });
 
+// do NOT update password with this
+// this is for admin
+const getAllUsers = factory.getAll(User);
+const getUser = factory.getOne(User);
+const createUser = factory.createOne(User);
+const updateUser = factory.updateOne(User);
+const deleteUser = factory.deleteOne(User);
+
+// upload user photo
+const uploadUserPhoto = upload.single('photo');
+
+const resizeUserPhoto = catchAsync(async (req, res, next) => {
+  if (!req.file) return next();
+
+  // User Photo Directory
+  const photoDir = path.join(__dirname, '../public/img/users');
+  if (!fs.existsSync(photoDir)) fs.mkdirSync(photoDir, { recursive: true });
+
+  // Create filename like: user-<id>-<timestamp>.jpeg
+  req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
+
+  await sharp(req.file.buffer)
+    .resize(500, 500)
+    .toFormat('jpeg')
+    .jpeg({ quality: 90 })
+    .toFile(`${photoDir}/${req.file.filename}`);
+
+  next();
+});
+
 exports.getMe = getMe;
 exports.updateMe = updateMe;
 exports.deleteMe = deleteMe;
@@ -223,16 +260,11 @@ exports.getFollowings = getFollowings;
 exports.getUserByUsername = getUserByUsername;
 exports.searchUsers = searchUsers;
 
-// do NOT update password with this
-// this is for admin
-const getAllUsers = factory.getAll(User);
-const getUser = factory.getOne(User);
-const createUser = factory.createOne(User);
-const updateUser = factory.updateOne(User);
-const deleteUser = factory.deleteOne(User);
-
 exports.getAllUsers = getAllUsers;
 exports.getUser = getUser;
 exports.createUser = createUser;
 exports.updateUser = updateUser;
 exports.deleteUser = deleteUser;
+
+exports.uploadUserPhoto = uploadUserPhoto;
+exports.resizeUserPhoto = resizeUserPhoto;

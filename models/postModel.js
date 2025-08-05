@@ -17,11 +17,23 @@ const postSchema = new mongoose.Schema(
       ref: 'User',
       required: [true, 'Post must belong to a user'],
     },
+    likes: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User',
+      },
+    ],
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   },
 );
+
+postSchema.virtual('likesCount').get(function () {
+  return this.likes.length || 0;
+});
 
 const Post = mongoose.model('Post', postSchema);
 module.exports = Post;

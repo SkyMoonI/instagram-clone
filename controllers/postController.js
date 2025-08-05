@@ -5,6 +5,11 @@ const factory = require('./handlerFactory');
 const filterObj = require('../utils/filterObj');
 const isOwnerOrAdmin = require('../utils/isOwnerOrAdmin');
 
+const sharp = require('sharp');
+const upload = require('../utils/uploadImage');
+const fs = require('fs');
+const path = require('path');
+
 const getMyPosts = catchAsync(async (req, res, next) => {
   const posts = await Post.find({ user: req.user.id });
 
@@ -33,8 +38,13 @@ const getPostsByUserId = catchAsync(async (req, res, next) => {
 });
 
 const createPost = catchAsync(async (req, res, next) => {
+  // Set the image to the uploaded image
+  if (req.file) req.body.photo = req.file.filename;
+  console.log(req.file.filename);
+  console.log(req.body.photo);
+
   // Only allow specific fields from the body
-  const filteredBody = filterObj(req.body, 'title', 'image');
+  const filteredBody = filterObj(req.body, 'caption', 'image');
 
   // Set the user to the logged-in user
   filteredBody.user = req.user.id;
@@ -58,6 +68,9 @@ const updatePost = catchAsync(async (req, res, next) => {
   if (isOwnerOrAdmin(post.user, req.user) === false) {
     return next(new AppError('You can not update this post', 403));
   }
+
+  // Set the image to the uploaded image
+  if (req.file) req.body.photo = req.file.filename;
 
   // Whitelist only allowed fields
   const filteredBody = filterObj(req.body, 'caption', 'image');
@@ -101,6 +114,57 @@ const deletePost = catchAsync(async (req, res, next) => {
 const getAllPosts = factory.getAll(Post);
 const getPost = factory.getOne(Post);
 
+const uploadPostImage = upload.single('image');
+
+const resizePostImage = catchAsync(async (req, res, next) => {
+  if (!req.file) return next();
+
+  // Ensure folder exists
+  const photoDir = path.join(__dirname, '../public/img/posts');
+  if (!fs.existsSync(photoDir)) fs.mkdirSync(photoDir, { recursive: true });
+
+  const filename = `post-${req.user.id}-${Date.now()}.jpeg`;
+
+  await sharp(req.file.buffer)
+    .resize(1200, 1200)
+    .toFormat('jpeg')
+    .jpeg({ quality: 90 })
+    .toFile(`${photoDir}/${filename}`);
+
+  req.body.image = filename;
+  next();
+});
+
+const toggleLikePost = catchAsync(async (req, res, next) => {
+  const { postId } = req.params;
+  const userId = req.user.id;
+
+  const post = await Post.findById(postId);
+
+  if (!post) return next(new AppError('No post found with that ID', 404));
+
+  const alreadyLiked = post.likes.includes(userId);
+
+  if (alreadyLiked) {
+    // Unlike
+    post.likes.pull(userId);
+  } else {
+    // Like
+    post.likes.push(userId);
+  }
+
+  await post.save();
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      liked: !alreadyLiked,
+      // post: post,
+      likes: post.likesCount,
+    },
+  });
+});
+
 exports.getAllPosts = getAllPosts;
 exports.getMyPosts = getMyPosts;
 exports.getPostsByUserId = getPostsByUserId;
@@ -108,3 +172,8 @@ exports.getPost = getPost;
 exports.createPost = createPost;
 exports.updatePost = updatePost;
 exports.deletePost = deletePost;
+
+exports.uploadPostImage = uploadPostImage;
+exports.resizePostImage = resizePostImage;
+
+exports.toggleLikePost = toggleLikePost;
