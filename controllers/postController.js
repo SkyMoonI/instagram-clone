@@ -1,14 +1,14 @@
+const sharp = require('sharp');
+const fs = require('fs');
+const path = require('path');
+const upload = require('../utils/uploadImage');
+
 const Post = require('../models/postModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const factory = require('./handlerFactory');
 const filterObj = require('../utils/filterObj');
 const isOwnerOrAdmin = require('../utils/isOwnerOrAdmin');
-
-const sharp = require('sharp');
-const upload = require('../utils/uploadImage');
-const fs = require('fs');
-const path = require('path');
 
 const getMyPosts = catchAsync(async (req, res, next) => {
   const posts = await Post.find({ user: req.user.id });
@@ -142,7 +142,6 @@ const toggleLikePost = catchAsync(async (req, res, next) => {
   const post = await Post.findById(postId);
 
   if (!post) return next(new AppError('No post found with that ID', 404));
-
   const alreadyLiked = post.likes.includes(userId);
 
   if (alreadyLiked) {

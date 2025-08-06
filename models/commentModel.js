@@ -21,6 +21,8 @@ const commentSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   },
 );
 
@@ -30,6 +32,10 @@ commentSchema.pre(/^find/, function (next) {
     select: 'username photo',
   });
   next();
+});
+
+commentSchema.virtual('likesCount').get(function () {
+  return this.likes.length || 0;
 });
 
 const Comment = mongoose.model('Comment', commentSchema);

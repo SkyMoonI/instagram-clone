@@ -100,8 +100,39 @@ const getAllComments = catchAsync(async (req, res, next) => {
 });
 const getComment = factory.getOne(Comment);
 
+const toggleLikeComment = catchAsync(async (req, res, next) => {
+  const { commentId } = req.params;
+  const userId = req.user.id;
+
+  const comment = await Comment.findById(commentId);
+  if (!comment) return next(new AppError('No comment found with that ID', 404));
+
+  const alreadyLiked = comment.likes.includes(userId);
+
+  if (alreadyLiked) {
+    // Unlike
+    comment.likes.pull(userId);
+  } else {
+    // Like
+    comment.likes.push(userId);
+  }
+
+  await comment.save();
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      liked: !alreadyLiked,
+      // post: post,
+      likes: comment.likesCount,
+    },
+  });
+});
+
 exports.getAllComments = getAllComments;
 exports.getComment = getComment;
 exports.createComment = createComment;
 exports.updateComment = updateComment;
 exports.deleteComment = deleteComment;
+
+exports.toggleLikeComment = toggleLikeComment;

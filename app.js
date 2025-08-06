@@ -4,7 +4,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
-// const hpp = require('hpp');
+const hpp = require('hpp');
 
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
@@ -58,18 +58,11 @@ app.use(xss());
 // HTTP parameter pollution
 // this will remove duplicate query parameters from the url
 // example: "name=John&name=John", "price=100&price=200", "sort=price&sort=-price"
-// app.use(
-//   hpp({
-//     whitelist: [
-//       'duration',
-//       'ratingsAverage',
-//       'ratingsQuantity',
-//       'maxGroupSize',
-//       'difficulty',
-//       'price',
-//     ],
-//   }),
-// );
+app.use(
+  hpp({
+    whitelist: ['sort', 'fields', 'page', 'limit'],
+  }),
+);
 
 // Serving static files
 app.use(express.static(`${__dirname}/public`));
